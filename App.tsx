@@ -6,7 +6,16 @@ import RNBluetoothClassic, {
   BTCharsets,
   BTDevice,
 } from 'react-native-bluetooth-classic';
-import {Root, Container, Toast, Header, Title} from 'native-base';
+import {
+  Root,
+  Container,
+  Toast,
+  Header,
+  Title,
+  Left,
+  Right,
+  Body,
+} from 'native-base';
 import {setConnectedDevice} from './src/actions';
 
 import ConnectionScreen from './src/Component/ConnectionScreen/ConnectionScreen';
@@ -108,7 +117,11 @@ class App extends Component<IProps> {
         ) : (
           <Container>
             <Header>
-              <Title>Подключение...</Title>
+              <Left />
+              <Body>
+                <Title>{'Подключение...'}</Title>
+              </Body>
+              <Right />
             </Header>
           </Container>
         )}
