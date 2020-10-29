@@ -7,7 +7,7 @@ import RNBluetoothClassic, {
   BTDevice,
 } from 'react-native-bluetooth-classic';
 import {Root, Container, Toast, Header, Title} from 'native-base';
-import {selectDevice} from './src/actions';
+import {setConnectedDevice} from './src/actions';
 
 import ConnectionScreen from './src/Component/ConnectionScreen/ConnectionScreen';
 
@@ -21,39 +21,32 @@ const {BLUETOOTH_DISCONNECTED, CONNECTION_LOST, ERROR} = BTEvents;
 
 interface IProps {
   connectedDevice: BTDevice;
-  selectDevice: any;
+  setConnectedDevice: any;
 }
 
 class App extends Component<IProps> {
-  constructor(props: IProps) {
-    super(props);
-  }
-
-  subs = [];
+  subs: Array<any> = [];
 
   componentDidMount() {
-    this.initialize();
     // Re-initialize whenever a Bluetooth event occurs
     this.subs = [
-      // @ts-ignore
       RNBluetoothClassic.addListener(
         BLUETOOTH_DISCONNECTED,
         (device: BTDevice) => this.onDisconnected(device),
         this,
       ),
-      // @ts-ignore
       RNBluetoothClassic.addListener(
         CONNECTION_LOST,
         (error) => this.onConnectionLost(error),
         this,
       ),
-      // @ts-ignore
       RNBluetoothClassic.addListener(
         ERROR,
         (error) => this.onError(error),
         this,
       ),
     ];
+    this.refreshDevices();
   }
 
   componentWillUnmount() {
@@ -62,32 +55,26 @@ class App extends Component<IProps> {
 
   onDisconnected(device: BTDevice) {
     showMessage(`Humidity controller(${device.name}) was disconnected`);
-    this.initialize();
+    this.refreshDevices();
   }
 
   onConnectionLost(error: {device: {name: string}}) {
     showMessage(
       `Connection to humidity controller (${error.device.name}) was lost`,
     );
-    this.initialize();
+    this.refreshDevices();
   }
 
   onError(error: {message: string}) {
     showMessage(`${error.message}`);
-    this.initialize();
-  }
-
-  async initialize() {
-    this.props.selectDevice(null);
-
-    if (await RNBluetoothClassic.isEnabled()) {
-      await this.refreshDevices();
-    } else {
-      showMessage('Bluetooth is disabled');
-    }
+    this.refreshDevices();
   }
 
   async refreshDevices() {
+    if (!(await RNBluetoothClassic.isEnabled())) {
+      return;
+    }
+    this.props.setConnectedDevice(null);
     try {
       const devices = await RNBluetoothClassic.list();
       const humidityControllerBluetooth = devices.find(
@@ -99,6 +86,7 @@ class App extends Component<IProps> {
       }
     } catch (error) {
       console.error(error.message);
+      setTimeout(() => this.refreshDevices(), 1000);
     }
   }
 
@@ -106,7 +94,7 @@ class App extends Component<IProps> {
     try {
       await RNBluetoothClassic.setEncoding(BTCharsets.ASCII);
       const connectedDevice = await RNBluetoothClassic.connect(device.id);
-      this.props.selectDevice(connectedDevice);
+      this.props.setConnectedDevice(connectedDevice);
     } catch (error) {
       setTimeout(() => this.refreshDevices(), 1000);
     }
@@ -116,7 +104,7 @@ class App extends Component<IProps> {
     return (
       <>
         {this.props.connectedDevice ? (
-          <ConnectionScreen></ConnectionScreen>
+          <ConnectionScreen />
         ) : (
           <Container>
             <Header>
@@ -133,13 +121,13 @@ const AppContainer = connect(
   (state: {connectedDevice: BTDevice}) => ({
     connectedDevice: state.connectedDevice,
   }),
-  {selectDevice},
+  {setConnectedDevice},
 )(App);
 
 export default () => (
   <Root>
     <Provider store={store}>
-      <AppContainer></AppContainer>
+      <AppContainer />
     </Provider>
   </Root>
 );
