@@ -12,10 +12,12 @@ interface IProps {}
 interface IState {
   receivedData: Array<any>;
   message: {
-    eH: string;
-    eT: string;
-    iH: string;
-    iT: string;
+    externalRelativeH: string;
+    externalAbsoluteH: string;
+    externalT: string;
+    internalRelativeH: string;
+    internalAbsoluteH: string;
+    internalT: string;
     m: number;
   };
 }
@@ -26,10 +28,12 @@ class ConnectionScreen extends Component<IProps, IState> {
     this.state = {
       receivedData: [],
       message: {
-        eH: '',
-        eT: '',
-        iH: '',
-        iT: '',
+        externalRelativeH: '',
+        externalAbsoluteH: '',
+        externalT: '',
+        internalRelativeH: '',
+        internalAbsoluteH: '',
+        internalT: '',
         m: 0,
       },
     };
@@ -56,25 +60,37 @@ class ConnectionScreen extends Component<IProps, IState> {
   }
 
   transformData(data: string) {
-    let eH: string = 'error';
-    let eT: string = 'error';
-    let iH: string = 'error';
-    let iT: string = 'error';
+    let externalRelativeH: string = 'error';
+    let externalAbsoluteH: string = 'error';
+    let externalT: string = 'error';
+    let internalRelativeH: string = 'error';
+    let internalAbsoluteH: string = 'error';
+    let internalT: string = 'error';
 
     try {
       const messageObject = JSON.parse(data);
 
-      if (messageObject.external !== 'error') {
-        eH = `${messageObject.external.H}%`;
-        eT = `${messageObject.external.T}°С`;
+      if (messageObject.e !== 'error') {
+        externalRelativeH = `${messageObject.e.rH}%`;
+        externalAbsoluteH = `${messageObject.e.aH}г*м³`;
+        externalT = `${messageObject.e.T}°С`;
       }
 
-      if (messageObject.internal !== 'error') {
-        iH = `${messageObject.internal.H}%`;
-        iT = `${messageObject.internal.T}°С`;
+      if (messageObject.i !== 'error') {
+        internalRelativeH = `${messageObject.i.rH}%`;
+        internalAbsoluteH = `${messageObject.i.aH}г*м³`;
+        internalT = `${messageObject.i.T}°С`;
       }
 
-      return {eH, eT, iH, iT, m: messageObject.motor};
+      return {
+        externalRelativeH,
+        externalAbsoluteH,
+        externalT,
+        internalRelativeH,
+        internalAbsoluteH,
+        internalT,
+        m: messageObject.m,
+      };
     } catch (error) {
       return false;
     }
@@ -126,10 +142,13 @@ class ConnectionScreen extends Component<IProps, IState> {
               {'Внутренний датчик'}
             </Title>
             <Title style={{color: 'black'}}>
-              {`Влажность: ${this.state.message.iH}`}
+              {`Относительная влажност: ${this.state.message.internalRelativeH}`}
             </Title>
             <Title style={{color: 'black'}}>
-              {`Температура: ${this.state.message.iT}`}
+              {`Абсолютная влажность: ${this.state.message.internalAbsoluteH}`}
+            </Title>
+            <Title style={{color: 'black'}}>
+              {`Температура: ${this.state.message.internalT}`}
             </Title>
           </View>
           <View style={viewStyle}>
@@ -137,10 +156,13 @@ class ConnectionScreen extends Component<IProps, IState> {
               {'Внешний·датчик'}
             </Title>
             <Title style={{color: 'black'}}>
-              {`Влажность: ${this.state.message.eH}`}
+              {`Относительная влажность: ${this.state.message.externalRelativeH}`}
             </Title>
             <Title style={{color: 'black'}}>
-              {`Температура: ${this.state.message.eT}`}
+              {`Абсолютная влажность: ${this.state.message.externalAbsoluteH}`}
+            </Title>
+            <Title style={{color: 'black'}}>
+              {`Температура: ${this.state.message.externalT}`}
             </Title>
           </View>
 
